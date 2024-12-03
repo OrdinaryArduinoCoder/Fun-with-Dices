@@ -1,0 +1,85 @@
+/*
+This is one way to do a simple dice, which rolls with a button press, it also displays the last diceroll till the button is pressed again.
+This code also includes:
+- Button debounce
+- Debugging
+
+// Pin allocation
+const int buttonPin = 13;  // Pin for the button
+const int ledPins[] = {2, 3, 4, 5, 6, 7, 8};  // Pin array for the 7 LEDs
+const int numLeds = 7;  // Total number of LEDs
+
+// States for button press detection
+int buttonState = 0;
+int lastButtonState = 0;
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);  // Sets the button pin as input with pull-up resistor
+  
+  // Sets LED pins as output
+  for (int i = 0; i < numLeds; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+  
+  Serial.begin(9600);  // Serial communication for debugging
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin);  // Reads the button state
+  
+  // If the button has been pressed (from HIGH to LOW)
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    delay(50);  // Debounce delay
+    rollDice();  // Calls function to roll the dice and turn on LEDs
+  }
+
+  lastButtonState = buttonState;  // Update last button state
+}
+
+void rollDice() {
+  int roll = random(1, 7);  // Generates a random number between 1 and 6
+  Serial.print("Roll: ");
+  Serial.println(roll);  // Prints the roll result, for debugging
+
+  // Turns off all LEDs before lighting up new ones
+  for (int i = 0; i < numLeds; i++) {
+    digitalWrite(ledPins[i], LOW);
+  }
+
+  // The roll cases, declares how many and which LEDs turn on
+  switch (roll) {
+    case 1:
+      digitalWrite(ledPins[3], HIGH);  // Middle LED
+      break;
+    case 2:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 3:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[3], HIGH);  // Middle
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 4:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 5:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[3], HIGH);  // Middle
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 6:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[1], HIGH);  // Top-center
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[5], HIGH);  // Bottom-center
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+  }
+}
