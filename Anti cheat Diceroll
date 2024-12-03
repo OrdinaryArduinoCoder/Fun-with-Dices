@@ -1,0 +1,98 @@
+// Pin allocation
+const int buttonPin = 13;  // Pin for the button
+const int ledPins[] = {2, 3, 4, 5, 6, 7, 8};  // Pin array for the 7 LEDs
+const int numLeds = 7;  // Total number of LEDs
+
+// Button press detection
+int buttonState = 0;         // Current state of the button
+int lastButtonState = 0;     // Previous state of the button
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);  // Set the button pin as input with pull-up resistor
+  
+  // Set LED pins as output
+  for (int i = 0; i < numLeds; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+  
+  Serial.begin(9600);  // Start serial communication for debugging
+  
+  // Blink all LEDs at the start
+  blinkAllLeds();
+}
+
+void loop() {
+  buttonState = digitalRead(buttonPin);  // Read the button state
+  
+  // If the button has been pressed (from HIGH to LOW)
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    delay(50);  // Simple debounce delay
+    rollDice();  // Call function to roll the dice and light LEDs
+  }
+
+  lastButtonState = buttonState;  // Update last button state
+}
+
+void rollDice() {
+  int roll = random(1, 7);  // Generate a random number between 1 and 6
+  Serial.print("Roll: ");
+  Serial.println(roll);  // Print the roll result to the serial monitor
+
+  // Blink all LEDs before the new roll
+  blinkAllLeds();
+
+  // Turn off all LEDs before lighting up new ones
+  for (int i = 0; i < numLeds; i++) {
+    digitalWrite(ledPins[i], LOW);
+  }
+
+  // Based on the roll, light up LEDs
+  switch (roll) {
+    case 1:
+      digitalWrite(ledPins[3], HIGH);  // Middle LED
+      break;
+    case 2:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 3:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[3], HIGH);  // Middle
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 4:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 5:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[3], HIGH);  // Middle
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+    case 6:
+      digitalWrite(ledPins[0], HIGH);  // Top-left
+      digitalWrite(ledPins[1], HIGH);  // Top-center
+      digitalWrite(ledPins[2], HIGH);  // Top-right
+      digitalWrite(ledPins[4], HIGH);  // Bottom-left
+      digitalWrite(ledPins[5], HIGH);  // Bottom-center
+      digitalWrite(ledPins[6], HIGH);  // Bottom-right
+      break;
+  }
+}
+
+// Function to blink all LEDs
+void blinkAllLeds() {
+  // Blink all LEDs for 500 milliseconds
+  for (int i = 0; i < numLeds; i++) {
+    digitalWrite(ledPins[i], HIGH);
+  }
+  delay(500);  // LEDs on for 500ms
+  for (int i = 0; i < numLeds; i++) {
+    digitalWrite(ledPins[i], LOW);
+  }
+  delay(500);  // LEDs off for 500ms
+}
