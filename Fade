@@ -1,0 +1,50 @@
+const int ledPins[] = {9, 10, 11}; // Pins für die LEDs
+const int fadeTime = 15; // Zeit zwischen Helligkeitsänderungen (Millisekunden)
+
+unsigned long previousMillis = 0;
+int currentLED = 0;
+int brightness = 0;
+int fadeDirection = 1;
+int stepDirection = 1; // Richtung der LED-Reihenfolge
+
+void setup() {
+  for (int i = 0; i < 3; i++) {
+    pinMode(ledPins[i], OUTPUT); // Pins als Ausgang setzen
+  }
+}
+
+void loop() {
+  unsigned long currentMillis = millis();
+
+  // Überprüfen, ob es Zeit für die nächste Helligkeitsänderung ist
+  if (currentMillis - previousMillis >= fadeTime) {
+    previousMillis = currentMillis;
+
+    // Helligkeit der aktuellen LED ändern
+    brightness += fadeDirection;
+    analogWrite(ledPins[currentLED], brightness);
+
+    // Richtung wechseln, wenn maximale oder minimale Helligkeit erreicht
+    if (brightness <= 0 || brightness >= 255) {
+      fadeDirection = -fadeDirection;
+
+      // Zur nächsten LED wechseln, wenn die aktuelle LED fertig ist
+      if (brightness <= 0) {
+        analogWrite(ledPins[currentLED], 0); // Aktuelle LED ausschalten
+
+        // Zur nächsten LED basierend auf der Reihenfolge wechseln
+        currentLED += stepDirection;
+
+        // Richtung der Reihenfolge ändern, wenn Ende erreicht
+        if (currentLED >= 3) {
+          stepDirection = -1;
+          currentLED = 1; // Wieder zurück zu LED 2
+        } else if (currentLED < 0) {
+          stepDirection = 1;
+          currentLED = 1; // Wieder zurück zu LED 2
+        }
+      }
+  
+}
+  }
+}
