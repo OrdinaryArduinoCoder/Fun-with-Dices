@@ -1,0 +1,68 @@
+const int motorPin = 9;   // PWM-Pin für den Motor
+const int clkPin = 2;     // Encoder A (CLK) - Interrupt 0
+const int dtPin = 3;      // Encoder B (DT) - Interrupt 1
+const int swPin = 4;      // Encoder-Taster (optional)
+
+volatile int encoderPosition = 0;  // Aktuelle Encoder-Position
+int targetPosition = 0;            // Zielposition
+const int stepSize = 1;            // Schritte pro Encoder-Impuls
+const int maxSteps = 100;          // Begrenzung der Schritte (anpassen)
+bool motorActive = false;
+
+void IRAM_ATTR readEncoder() {
+  int clkState = digitalRead(clkPin);
+  int dtState = digitalRead(dtPin);
+
+  if (clkState == dtState) {
+    targetPosition += stepSize;  // Drehung in eine Richtung
+  } else {
+    targetPosition -= stepSize;  // Drehung in andere Richtung
+  }
+
+  targetPosition = constrain(targetPosition, -maxSteps, maxSteps); // Begrenzung der Position
+  motorActive = true;
+}
+
+void moveMotorToTarget() {
+  if (!motorActive) return;  // Falls der Motor nicht aktiv ist, nichts tun
+
+  int speed = map(abs(targetPosition - encoderPosition), 0, maxSteps, 0, 255);
+  
+  if (encoderPosition < targetPosition) {
+    analogWrite(motorPin, speed);  // Motor läuft vorwärts
+  } 
+  else if (encoderPosition > targetPosition) {
+    analogWrite(motorPin, speed);  // Motor läuft rückwärts (Falls H-Brücke genutzt wird)
+  } 
+  else {
+    analogWrite(motorPin, 0);  // Ziel erreicht → Motor stoppen
+    motorActive = false;
+  }
+}
+
+void setup() {
+  pinMode(motorPin, OUTPUT);
+  pinMode(clkPin, INPUT_PULLUP);
+  pinMode(dtPin, INPUT_PULLUP);
+  pinMode(swPin, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(clkPin), readEncoder, CHANGE);
+  
+  Serial.begin(115200);
+}
+
+void loop() {
+  moveMotorToTarget();  // Überprüft, ob der Motor noch fahren muss
+
+  if (digitalRead(swPin) == LOW) {  // Falls der Taster gedrückt wird
+    targetPosition = 0;
+    motorActive = true;
+    Serial.println("Motor fährt zur Nullposition");
+    delay(500);
+  }
+
+  Serial.print("Encoder Position: ");
+  Serial.print(encoderPosition);
+  Serial.print(" | Ziel: ");
+  Serial.println(targetPosition);
+}
